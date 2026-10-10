@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maze Solver — DSA Project | Graph + BFS</title>
+  <meta name="description" content="Interactive maze solver using graph data structure and BFS algorithm implemented in C (WebAssembly). DSA project." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── BACKGROUND PARTICLES ── -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#logoGrad)"/>
+            <path d="M8 8h4v4H8zM14 8h4v4h-4zM20 8h4v4h-4z" fill="#0d1117" opacity="0.7"/>
+            <path d="M8 14h4v4H8zM20 14h4v4h-4z" fill="#0d1117" opacity="0.7"/>
+            <path d="M8 20h4v4H8zM14 20h4v4h-4zM20 20h4v4h-4z" fill="#0d1117" opacity="0.7"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="100%" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">MazeSolver</span>
+          <span class="logo-sub">Graph + BFS Algorithm</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-c">C Language</span>
+        <span class="badge badge-dsa">DSA Project</span>
+        <span class="badge badge-wasm">WebAssembly</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN LAYOUT ── -->
+  <main class="main-layout">
+
+    <!-- ── LEFT PANEL: CONTROLS ── -->
+    <aside class="panel control-panel" id="controlPanel">
+      <div class="panel-header">
+        <h2 class="panel-title">Controls</h2>
+        <div class="panel-glow"></div>
+      </div>
+
+      <!-- Maze Size -->
+      <div class="control-group" id="sizeGroup">
+        <label class="control-label" for="mazeSize">Maze Size</label>
+        <div class="size-buttons">
+          <button class="size-btn" id="sizeSmall"   data-size="11">Small<span>11×11</span></button>
+          <button class="size-btn active" id="sizeMedium" data-size="21">Medium<span>21×21</span></button>
+          <button class="size-btn" id="sizeLarge"   data-size="31">Large<span>31×31</span></button>
+          <button class="size-btn" id="sizeExtreme" data-size="63">Extreme<span>63×63</span></button>
+        </div>
+      </div>
+
+      <!-- Maze Mode -->
+      <div class="control-group" id="modeGroup">
+        <label class="control-label">Maze Mode</label>
+        <div class="size-buttons">
+          <button class="size-btn active" id="modeCornerCorner" data-mode="corner-corner">Corner → Corner<span>Classic</span></button>
+          <button class="size-btn" id="modeCornerCenter" data-mode="corner-center">Corner → Center<span>Challenge</span></button>
+        </div>
+      </div>
+
+      <!-- Speed Controls -->
+      <div class="control-group" id="speedGroup">
+        <label class="control-label">BFS Exploration Speed
+          <span class="speed-val" id="exploreSpeedVal">3</span>
+        </label>
+        <div class="slider-wrap">
+          <span class="slider-label">Slow</span>
+          <input type="range" id="exploreSpeed" min="1" max="5" value="3" class="slider slider-purple" />
+          <span class="slider-label">Fast</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Path Draw Speed
+          <span class="speed-val" id="pathSpeedVal">3</span>
+        </label>
+        <div class="slider-wrap">
+          <span class="slider-label">Slow</span>
+          <input type="range" id="animSpeed" min="1" max="5" value="3" class="slider" />
+          <span class="slider-label">Fast</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-generate" id="btnGenerate">
+          <span class="btn-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            </svg>
+          </span>
+          <span class="btn-text">Generate Maze</span>
+          <span class="btn-shimmer"></span>
+        </button>
+
+        <button class="btn btn-solve" id="btnSolve" disabled>
+          <span class="btn-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+          </span>
+          <span class="btn-text">Solve with BFS</span>
+          <span class="btn-shimmer"></span>
+        </button>
+
+        <button class="btn btn-reset" id="btnReset">
+          <span class="btn-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+          </span>
+          <span class="btn-text">Reset</span>
+          <span class="btn-shimmer"></span>
+        </button>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-title">Legend</div>
+        <div class="legend-items">
+          <div class="legend-item">
+            <div class="legend-dot start-dot"></div>
+            <span>Start (S)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot end-dot"></div>
+            <span>End (E)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot path-dot"></div>
+            <span>BFS Path</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot visited-dot"></div>
+            <span>Explored</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot wall-dot"></div>
+            <span>Wall</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot open-dot"></div>
+            <span>Open Cell</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Algorithm Info -->
+      <div class="algo-info">
+        <div class="algo-info-title">Algorithm Details</div>
+        <div class="algo-detail">
+          <span class="algo-key">Algorithm</span>
+          <span class="algo-val">BFS (C Language)</span>
+        </div>
+        <div class="algo-detail">
+          <span class="algo-key">Data Structure</span>
+          <span class="algo-val">Graph (Adj. List)</span>
+        </div>
+        <div class="algo-detail">
+          <span class="algo-key">Guarantees</span>
+          <span class="algo-val">Shortest Path</span>
+        </div>
+        <div class="algo-detail">
+          <span class="algo-key">Time Complexity</span>
+          <span class="algo-val">O(V + E)</span>
+        </div>
+        <div class="algo-detail">
+          <span class="algo-key">Space Complexity</span>
+          <span class="algo-val">O(V)</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── CENTER: MAZE CANVAS ── -->
+    <section class="maze-section" id="mazeSection">
+      <!-- Status Bar -->
+      <div class="status-bar" id="statusBar">
+        <div class="status-indicator" id="statusIndicator">
+          <div class="status-dot idle" id="statusDot"></div>
+          <span id="statusText">Click "Generate Maze" to begin</span>
+        </div>
+        <div class="wasm-badge" id="wasmBadge">
+          <span class="wasm-dot"></span>
+          <span id="wasmStatus">Loading WASM...</span>
+        </div>
+      </div>
+
+      <!-- Maze Container -->
+      <div class="maze-container" id="mazeContainer">
+        <div class="maze-placeholder" id="mazePlaceholder">
+          <div class="placeholder-icon">
+            <svg viewBox="0 0 80 80" fill="none">
+              <rect x="5" y="5" width="70" height="70" rx="4" stroke="url(#pGrad)" stroke-width="2" stroke-dasharray="6 3"/>
+              <path d="M15 15h15v15H15zM15 30v15h15M30 45h15M45 30V15h15M45 45h15v15M30 60H15" stroke="url(#pGrad)" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="15" cy="15" r="4" fill="#00ff9d"/>
+              <circle cx="65" cy="65" r="4" fill="#ff4d6d"/>
+              <defs>
+                <linearGradient id="pGrad" x1="0" y1="0" x2="80" y2="80">
+                  <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.5"/>
+                  <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.5"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <p class="placeholder-text">Generate a maze to get started</p>
+          <p class="placeholder-sub">Using Recursive Backtracker algorithm</p>
+        </div>
+        <canvas id="mazeCanvas" class="maze-canvas" style="display:none;"></canvas>
+      </div>
+    </section>
+
+    <!-- ── RIGHT PANEL: STATS ── -->
+    <aside class="panel stats-panel" id="statsPanel">
+      <div class="panel-header">
+        <h2 class="panel-title">Statistics</h2>
+        <div class="panel-glow"></div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card" id="statMazeSize">
+          <div class="stat-icon">⊞</div>
+          <div class="stat-value" id="valMazeSize">—</div>
+          <div class="stat-label">Maze Size</div>
+        </div>
+        <div class="stat-card" id="statOpenCells">
+          <div class="stat-icon">◻</div>
+          <div class="stat-value" id="valOpenCells">—</div>
+          <div class="stat-label">Open Cells</div>
+        </div>
+        <div class="stat-card highlight" id="statPathLen">
+          <div class="stat-icon">↗</div>
+          <div class="stat-value" id="valPathLen">—</div>
+          <div class="stat-label">Path Length</div>
+        </div>
+        <div class="stat-card" id="statVisited">
+          <div class="stat-icon">⬡</div>
+          <div class="stat-value" id="valVisited">—</div>
+          <div class="stat-label">Nodes Visited</div>
+        </div>
+        <div class="stat-card" id="statEdges">
+          <div class="stat-icon">⟶</div>
+          <div class="stat-value" id="valEdges">—</div>
+          <div class="stat-label">Graph Edges</div>
+        </div>
+        <div class="stat-card highlight" id="statSolveTime">
+          <div class="stat-icon">⚡</div>
+          <div class="stat-value" id="valSolveTime">—</div>
+          <div class="stat-label">Solve Time</div>
+        </div>
+      </div>
+
+      <!-- Solution Result -->
+      <div class="result-box" id="resultBox" style="display:none;">
+        <div class="result-icon" id="resultIcon">✓</div>
+        <div class="result-title" id="resultTitle">Path Found!</div>
+        <div class="result-sub" id="resultSub">BFS completed successfully</div>
+      </div>
+
+      <!-- BFS Walkthrough -->
+      <div class="walkthrough">
+        <div class="walkthrough-title">How BFS Works</div>
+        <ol class="walkthrough-steps">
+          <li class="wt-step" id="wt1">
+            <span class="wt-num">1</span>
+            <span>Start node is added to the queue</span>
+          </li>
+          <li class="wt-step" id="wt2">
+            <span class="wt-num">2</span>
+            <span>Dequeue a node, explore its 4 neighbors</span>
+          </li>
+          <li class="wt-step" id="wt3">
+            <span class="wt-num">3</span>
+            <span>Unvisited neighbors are enqueued</span>
+          </li>
+          <li class="wt-step" id="wt4">
+            <span class="wt-num">4</span>
+            <span>Track parent to reconstruct path</span>
+          </li>
+          <li class="wt-step" id="wt5">
+            <span class="wt-num">5</span>
+            <span>Repeat until End node is reached</span>
+          </li>
+        </ol>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ── SCRIPTS ── -->
+  <!-- Try to load compiled WASM; fallback to pure-JS BFS if unavailable -->
+  <script>
+    window.WASM_AVAILABLE = false;
+    window.MazeSolverModule = null;
+  </script>
+  <script src="solver.js" onerror="console.warn('WASM not compiled yet — using JS fallback BFS')"></script>
+  <script src="maze.js?v=5"></script>
+</body>
+</html>

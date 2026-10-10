@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Compiled Binaries & Test Artifacts
+solver_test
+solver.js
+solver.wasm
+emsdk/
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
